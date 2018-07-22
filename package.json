@@ -1,0 +1,29 @@
+{
+  "name": "tanks",
+  "version": "0.0.1",
+  "description": "A game of classes of tanks. Protect your king and kill the other team's king to win.",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.16.3",
+    "node-gameloop": "^0.1.4",
+    "phaser": "^3.9.0",
+    "socket.io": "^2.1.1"
+  },
+  "engines": {
+    "node": "8.11.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "\u0016"
+  },
+  "keywords": [
+    "projects/tanks.io"
+  ],
+  "author": "Narahari Rao",
+  "license": "ISC"
+}

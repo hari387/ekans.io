@@ -1,0 +1,177 @@
+var socket = io.connect();
+
+socket.on('lost',function(){
+	location.reload();
+	console.log('lost');
+});
+
+function convertCoordinates(a){
+	return (a * 32);
+}
+
+function func(){
+
+var elem = document.getElementById("b");
+elem.parentNode.removeChild(elem);
+
+let config = {
+	type: Phaser.AUTO,
+	width: window.innerWidth,
+	height: window.innerHeight,
+	physics: {
+		default: 'arcade',
+		arcade: {
+			debug: false,
+			gravity: { y: 0 }
+		}
+	},
+	scene: {
+		preload: preload,
+		create: create,
+		update: update
+	} 
+};
+
+var game = new Phaser.Game(config);
+
+function preload(){
+	this.load.tilemapTiledJSON('level1', 'assets/level1.json');
+	this.load.image('tile','assets/background.png');
+	this.load.image('part','assets/body.png');
+	this.load.image('head','assets/head.png');
+}
+
+function create(){
+
+	let g = this;
+
+	this.otherPlayers = {};
+
+	this.me = [];
+
+	this.room = -1;
+	this.direction = -1;
+
+	
+	this.map = this.add.tilemap('level1');
+	let tileset = this.map.addTilesetImage('whiteSquare','tile');
+	this.background = this.map.createStaticLayer('Background',tileset,0,0);
+	
+
+	socket.emit('play');
+	
+	socket.on('currentPlayers',function(players){
+		Object.keys(players).forEach(function(id){
+			if(id == socket.id){
+				addMe(g,players[id]);
+			} else {
+				addOtherPlayer(g,players[id]);
+			}
+		});
+	});
+
+	socket.on('newPlayer',function(newPlayer){
+		console.log('A player joined this room');
+		addOtherPlayer(g,newPlayer);
+	});
+
+	socket.on('disconnected',function(id){
+		console.log(id + 'disconnected');
+		g.otherPlayers[id].forEach(function(part){
+			part.destroy();
+		});
+		delete g.otherPlayers[id];
+	});
+	
+	socket.on('update',function(players){
+		//console.log('update');
+		//console.log(socket.id);
+		Object.keys(players).forEach(function(id){
+			g.room = players.room;
+			if(id == socket.id){
+				g.me[g.me.length - 1].destroy();
+				g.me.splice(g.me.length - 1,1);
+				g.me.splice(1,0,g.add.sprite(g.me[0].x,g.me[0].y,'part').setOrigin(0,0));
+				g.me[0].x = convertCoordinates(players[id].x);
+				g.me[0].y = convertCoordinates(players[id].y);
+			} else if(id.length > 5){
+				let op = g.otherPlayers[id];
+				console.log(op);
+				op[op.length - 1].destroy();
+				op.splice(op.length - 1,1);
+				op.splice(1,0,g.add.sprite(op[0].x,op[0].y,'part').setOrigin(0,0));
+				op[0].x = convertCoordinates(players[id].x);
+				op[0].y = convertCoordinates(players[id].y);
+			}
+		});
+	});
+
+	this.keys = this.input.keyboard.createCursorKeys();
+	this.wasd = {
+	  up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+	  down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+	  left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+	  right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+	};
+	this.mouse = this.input.activePointer;
+
+}
+
+function update(){
+	//console.log('dir'+this.direction);
+	if ((this.keys.left.isDown || this.wasd.left.isDown) && (this.direction%2 == 0)) {
+		console.log('l');
+		socket.emit('changeDir',3,this.room);
+		this.direction = 3;
+	} else if ((this.keys.right.isDown || this.wasd.right.isDown) && (this.direction%2 == 0)) {
+		console.log('r');
+		socket.emit('changeDir',1,this.room);
+		this.direction = 1;
+	} else if ((this.keys.up.isDown || this.wasd.up.isDown) && (this.direction%2 == 1)) {
+		console.log('u');
+		socket.emit('changeDir',0,this.room);
+		this.direction = 0;
+	} else if ((this.keys.down.isDown || this.wasd.down.isDown) && (this.direction%2 == 1)) {
+		console.log('d');
+		socket.emit('changeDir',2,this.room);
+		this.direction = 2;
+	}
+}
+
+// tis = game/this for all intents and purposes
+
+
+function addMe(tis,player){
+	
+	tis.direction = player.dir;
+	let xi = convertCoordinates(player.parts[0].x);
+	let yi = convertCoordinates(player.parts[0].y);
+	tis.me.push(tis.add.sprite(xi,yi,'head').setOrigin(0,0));
+	tis.cameras.main.startFollow(tis.me[0]);
+	player.parts.forEach(function(part){
+		let x = convertCoordinates(part.x);
+		let y = convertCoordinates(part.y)
+		if(x != xi || y != yi){
+			tis.me.push(tis.add.sprite(x,y,'part').setOrigin(0,0));
+		}
+	});
+}
+
+function addOtherPlayer(tis,player){
+	let xi = convertCoordinates(player.parts[0].x);
+	let yi = convertCoordinates(player.parts[0].y);
+	let otherPlayer = [];
+	otherPlayer.push(tis.add.sprite(xi,yi,'head').setOrigin(0,0));
+	player.parts.forEach(function(part){
+		let x = convertCoordinates(part.x);
+		let y = convertCoordinates(part.y)
+		if(x != xi || y != yi){
+			otherPlayer.push(tis.add.sprite(x,y,'part').setOrigin(0,0));
+		}
+	});
+	tis.otherPlayers[player.id] = otherPlayer;
+	console.log(tis.otherPlayers[player.id]);
+}
+
+
+}

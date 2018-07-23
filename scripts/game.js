@@ -135,6 +135,47 @@ function update(){
 		console.log('d');
 		socket.emit('changeDir',2,this.room);
 		this.direction = 2;
+	} else if(this.mouse.justDown){
+		console.log('Mousex: '+this.mouse.x);
+		console.log('Mousey: '+this.mouse.y);
+		/*
+		if(this.mouse.y > this.mouse.x * window.innerHeight/window.innerWidth){
+			if(this.mouse.y > window.innerHeight - this.mouse.x * window.innerHeight/window.innerWidth){
+				console.log('d');
+				socket.emit('changeDir',2,this.room);
+				this.direction = 2;
+			} else {
+				console.log('l');
+				socket.emit('changeDir',3,this.room);
+				this.direction = 3;
+			}
+		} else {
+			if(this.mouse.y > window.innerHeight - this.mouse.x * window.innerHeight/window.innerWidth){
+				console.log('r');
+				socket.emit('changeDir',1,this.room);
+				this.direction = 1;
+			} else {
+				console.log('u');
+				socket.emit('changeDir',0,this.room);
+				this.direction = 0;
+			}
+		}
+		// four section mouse control
+		*/
+		if(this.mouse.x >= window.innerWidth/2){
+			if(this.direction == 3){
+				this.direction = 0;
+			} else {
+				this.direction += 1;
+			}
+		} else {
+			if(this.direction == 0){
+				this.direction = 3;
+			} else {
+				this.direction -= 1;
+			}
+		}
+		socket.emit('changeDir',this.direction,this.room);
 	}
 }
 

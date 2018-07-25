@@ -8,7 +8,6 @@ var rooms = [];
 var foods = [];
 app.use('/scripts',express.static(__dirname + '/scripts'));
 app.use('/assets',express.static(__dirname + '/assets'));
-app.use('/slick-ui',express.static(__dirname + '/slick-ui'));
 
 app.get('/',function(req, res){
 	res.sendFile(__dirname + '/index.html');

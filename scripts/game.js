@@ -33,7 +33,6 @@ let config = {
 };
 
 var game = new Phaser.Game(config);
-//var slickUI;
 var moved = true;
 
 function preload(){
@@ -42,9 +41,6 @@ function preload(){
 	this.load.image('part','assets/body.png');
 	this.load.image('head','assets/head.png');
 	this.load.image('food','assets/food.png');
-
-	//slickUI = this.plugins.install('slick', Phaser.Plugins.SlickUI);
-	//slickUI.load('slick-ui/preview/assets/ui/kenney');
 }
 
 function create(){
@@ -149,9 +145,6 @@ function create(){
 
 		});
 	});
-
-	//var panel;
-	//slickUI.add(panel = new SlickUI.Element.Panel(8, 8, 150, game.height - 16));
 
 	this.keys = this.input.keyboard.createCursorKeys();
 	this.wasd = {

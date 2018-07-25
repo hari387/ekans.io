@@ -5,8 +5,10 @@ var io = require('socket.io')(server);
 var gameloop = require('node-gameloop');
 var port = 3000;
 var rooms = [];
+var foods = [];
 app.use('/scripts',express.static(__dirname + '/scripts'));
 app.use('/assets',express.static(__dirname + '/assets'));
+app.use('/slick-ui',express.static(__dirname + '/slick-ui'));
 
 app.get('/',function(req, res){
 	res.sendFile(__dirname + '/index.html');
@@ -23,10 +25,11 @@ require('dns').lookup(require('os').hostname(), function (err, add, fam) {
 io.on('connection', function(socket){
 	console.log('A client has connected');
 	console.log("The Client's ID is: " + socket.id);
+	let startParts = 5;
 	socket.on('play',function(){
 		let d = Math.floor(Math.random() * 4);
-		let xi = Math.floor(Math.random() * 10) + 10;
-		let yi = Math.floor(Math.random() * 10) + 10;
+		let xi = Math.floor(Math.random() * 141) + 5;
+		let yi = Math.floor(Math.random() * 141) + 5;
 		player = {
 		    dir: d,
 		    parts: [{
@@ -39,7 +42,7 @@ io.on('connection', function(socket){
 		    id:socket.id
 		}
 
-		for (var ep = 1; ep < 20; ep++)
+		for (var ep = 1; ep < startParts; ep++)
 			if(player.dir == 0){
 				player.parts.push({
 					x:xi,
@@ -76,13 +79,28 @@ io.on('connection', function(socket){
 			player.parts[0].room = rooms.length;
 			rooms[rooms.length] = {};
 			rooms[rooms.length - 1][socket.id] = player;
+			foods[rooms.length - 1] = {};
+			for (var i = 200 - 1; i >= 0; i--) {
+				let xrand = Math.floor(Math.random() * 148) + 1;
+				let yrand = Math.floor(Math.random() * 148) + 1;
+				if(foods[player.room][xrand]){
+					if(!foods[player.room][xrand][yrand]){
+						foods[player.room][xrand][yrand] = 1;
+					}
+				} else {
+					foods[player.room][xrand] = {};
+					foods[player.room][xrand][yrand] = 1;
+				}
+			}
+			//console.log(foods[player.room]);
 			socket.join(player.room.toString());
 			console.log('Player joined room ' + player.room);
 		}
 
 		
 		socket.emit('currentPlayers',rooms[player.room]);
-		console.log(rooms[player.room]);
+		socket.emit('foods',foods[player.room]);
+		//console.log(rooms[player.room]);
 		socket.to(player.room.toString()).emit('newPlayer',player);
 		
 	});
@@ -100,9 +118,11 @@ io.on('connection', function(socket){
 	});
 
 	socket.on('changeDir',function(direction,room){
-		console.log(rooms[room]);
-		rooms[room][socket.id].dir = direction;
-		rooms[room][socket.id].parts[0].dir = direction;
+		//console.log(rooms[room]);
+		if(rooms[room][socket.id]){
+			rooms[room][socket.id].dir = direction;
+			rooms[room][socket.id].parts[0].dir = direction;
+		}
 	});
 });
 
@@ -114,6 +134,7 @@ const id = gameloop.setGameLoop(function(delta) {
     //console.log('Hi there! (frame=%s, delta=%s)', frameCount+=1.0, delta);
     //d+=delta;
     for (var i = rooms.length - 1; i >= 0; i--) {
+    	let rm = i.toString();
     	let players = {};
     	let heads = {};
     	heads.room = i;
@@ -167,11 +188,37 @@ const id = gameloop.setGameLoop(function(delta) {
     	Object.keys(rooms[i]).forEach(function(id){
     		let xi = rooms[i][id].parts[0].x;
     		let yi = rooms[i][id].parts[0].y;
+
+    		if(foods[i][xi]){
+    			if(foods[i][xi][yi]){
+    				delete foods[i][xi][yi];
+	    			let pts = rooms[i][id].parts;
+	    			let xd = pts[pts.length - 1].x - pts[pts.length - 2].x;
+	    			let yd = pts[pts.length - 1].y - pts[pts.length - 2].y;
+	    			pts.push({x:pts[pts.length - 1].x + xd,y:pts[pts.length - 1].y + yd});
+	    			io.in(rm).emit('delFood',xi,yi);
+	    			let xrand = Math.floor(Math.random() * 148) + 1;
+					let yrand = Math.floor(Math.random() * 148) + 1;
+					if(foods[i][xrand]){
+						if(!foods[i][xrand][yrand]){
+							foods[i][xrand][yrand] = 1;
+						}
+					} else {
+						foods[i][xrand] = {};
+						foods[i][xrand][yrand] = 1;
+					}
+					io.in(rm).emit('incFood',xrand,yrand);
+	    			io.to(id).emit('gain',pts[pts.length - 1]);
+	    		}
+    		}
+
+    		// player loss by other player
     		if(players[xi][yi] > 1){
-    			io.to(rooms[i][id].parts[0].id).emit('lost');
+    			io.to(id).emit('lost');
     			delete rooms[i][id];
     		}
     	});
-    	io.in(i.toString()).emit('update',heads);
+
+    	io.in(rm).emit('update',heads);
     }
 }, 1000 / fps);

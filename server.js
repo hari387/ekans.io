@@ -27,8 +27,8 @@ io.on('connection', function(socket){
 	let startParts = 5;
 	socket.on('play',function(){
 		let d = Math.floor(Math.random() * 4);
-		let xi = Math.floor(Math.random() * 141) + 5;
-		let yi = Math.floor(Math.random() * 141) + 5;
+		let xi = Math.floor(Math.random() * 137) + 6;
+		let yi = Math.floor(Math.random() * 137) + 6;
 		player = {
 		    dir: d,
 		    parts: [{
@@ -80,8 +80,8 @@ io.on('connection', function(socket){
 			rooms[rooms.length - 1][socket.id] = player;
 			foods[rooms.length - 1] = {};
 			for (var i = 200 - 1; i >= 0; i--) {
-				let xrand = Math.floor(Math.random() * 148) + 1;
-				let yrand = Math.floor(Math.random() * 148) + 1;
+				let xrand = Math.floor(Math.random() * 146) + 2;
+				let yrand = Math.floor(Math.random() * 146) + 2;
 				if(foods[player.room][xrand]){
 					if(!foods[player.room][xrand][yrand]){
 						foods[player.room][xrand][yrand] = 1;
@@ -125,7 +125,7 @@ io.on('connection', function(socket){
 	});
 });
 
-const fps = 10;
+const fps = 13;
 let frameCount = 0.0;
 let d = 0
 const id = gameloop.setGameLoop(function(delta) {

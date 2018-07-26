@@ -33,6 +33,8 @@ let config = {
 };
 
 var game = new Phaser.Game(config);
+var score = 5;
+var scoreText;
 var moved = true;
 
 function preload(){
@@ -60,6 +62,9 @@ function create(){
 	this.map = this.add.tilemap('level1');
 	let tile1 = this.map.addTilesetImage('bak','tile');
 	this.background = this.map.createStaticLayer('Background',tile1,0,0);
+
+	scoreText = this.add.text(12,12,'Score: '+ score, { fontSize: '26px', stroke: '#ff0000', strokeThickness:3 });
+	console.log('h: '+scoreText.displayHeight);
 	
 
 	socket.emit('play');
@@ -107,6 +112,9 @@ function create(){
 
 	socket.on('gain',function(part){
 		g.me.push(g.add.sprite(convertCoordinates(part.x),convertCoordinates(part.y),'part').setOrigin(0,0));
+		score++;
+		console.log(score);
+		scoreText.setText('Score: ' + score);
 	});
 
 	socket.on('disconnected',function(id){
@@ -133,7 +141,7 @@ function create(){
 				g.me[0].y = convertCoordinates(players[id].y);
 			} else if(id.length > 5){
 				let op = g.otherPlayers[id];
-				console.log(op);
+				//console.log(op);
 				op[op.length - 1].destroy();
 				op.splice(op.length - 1,1);
 				op.splice(1,0,g.add.sprite(op[0].x,op[0].y,'part').setOrigin(0,0));
@@ -161,7 +169,10 @@ function update(){
 	//console.log('dir'+this.direction);
 
 	// UI:
-
+	if(this.me[0]){
+		scoreText.setPosition(this.me[0].x - window.innerWidth/2 + 12,this.me[0].y - window.innerHeight/2 + 12);
+		//console.log((this.cam.scrollX - window.innerWidth/2 + 16).toString() + ', ' + (this.cam.scrollY - window.innerHeight/2 + 16).toString())
+	}
 	
 	if(moved){
 		// controls:
@@ -253,7 +264,7 @@ function addMe(tis,player){
 	let yi = convertCoordinates(player.parts[0].y);
 	tis.me.push(tis.add.sprite(xi,yi,'head').setOrigin(0,0));
 	tis.me[0].depth = 15;
-	tis.cameras.main.startFollow(tis.me[0]);
+	tis.cameras.main.startFollow(tis.me[0],);
 	player.parts.forEach(function(part){
 		let x = convertCoordinates(part.x);
 		let y = convertCoordinates(part.y)

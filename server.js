@@ -21,6 +21,15 @@ require('dns').lookup(require('os').hostname(), function (err, add, fam) {
   console.log('addr: '+add);
 })
 
+function objSize(obj){
+	let size = 0;
+	Object.keys(obj).forEach(function(x){
+		size += Object.keys(obj[x]).length;
+	});
+
+	return size;
+}
+
 io.on('connection', function(socket){
 	console.log('A client has connected');
 	console.log("The Client's ID is: " + socket.id);
@@ -127,7 +136,6 @@ io.on('connection', function(socket){
 
 const fps = 13;
 let frameCount = 0.0;
-let d = 0
 const id = gameloop.setGameLoop(function(delta) {
     // `delta` is the delta time from the last frame
     //console.log('Hi there! (frame=%s, delta=%s)', frameCount+=1.0, delta);
@@ -196,26 +204,43 @@ const id = gameloop.setGameLoop(function(delta) {
 	    			let yd = pts[pts.length - 1].y - pts[pts.length - 2].y;
 	    			pts.push({x:pts[pts.length - 1].x + xd,y:pts[pts.length - 1].y + yd});
 	    			io.in(rm).emit('delFood',xi,yi);
-	    			let xrand = Math.floor(Math.random() * 148) + 1;
-					let yrand = Math.floor(Math.random() * 148) + 1;
-					if(foods[i][xrand]){
-						if(!foods[i][xrand][yrand]){
-							foods[i][xrand][yrand] = 1;
-						}
-					} else {
-						foods[i][xrand] = {};
-						foods[i][xrand][yrand] = 1;
-					}
-					io.in(rm).emit('incFood',xrand,yrand);
 	    			io.to(id).emit('gain',pts[pts.length - 1]);
 	    		}
+    		}
+
+    		while(objSize(foods[i]) < 200){
+    			let xrand = Math.floor(Math.random() * 146) + 2;
+				let yrand = Math.floor(Math.random() * 146) + 2;
+				if(foods[i][xrand]){
+					if(!foods[i][xrand][yrand]){
+						foods[i][xrand][yrand] = 1;
+					}
+				} else {
+					foods[i][xrand] = {};
+					foods[i][xrand][yrand] = 1;
+				}
+				io.in(rm).emit('incFood',xrand,yrand);
     		}
 
     		// player loss by other player
     		if(players[xi][yi] > 1){
     			io.to(id).emit('lost');
+    			rooms[i][id].parts.forEach(function(part){
+    				if(Math.random() > (0.5)){
+			    		if(foods[i][part.x]){
+							if(!foods[i][part.x][part.y]){
+								foods[i][part.x][part.y] = 1;
+							}
+						} else {
+							foods[i][part.x] = {};
+							foods[i][part.x][part.y] = 1;
+						}
+						io.in(rm).emit('incFood',part.x,part.y);
+					}
+    			});
     			delete rooms[i][id];
     		}
+
     	});
 
     	io.in(rm).emit('update',heads);

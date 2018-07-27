@@ -204,7 +204,7 @@ const id = gameloop.setGameLoop(function(delta) {
 	    			let yd = pts[pts.length - 1].y - pts[pts.length - 2].y;
 	    			pts.push({x:pts[pts.length - 1].x + xd,y:pts[pts.length - 1].y + yd});
 	    			io.in(rm).emit('delFood',xi,yi);
-	    			io.to(id).emit('gain',pts[pts.length - 1]);
+	    			io.in(rm).emit('gain',id,pts[pts.length - 1]);
 	    		}
     		}
 

@@ -1,5 +1,7 @@
 var socket = io.connect();
 
+var othergains = 5;
+
 socket.on('lost',function(){
 	location.reload();
 	console.log('lost');
@@ -102,7 +104,7 @@ function create(){
 		g.foods[x][y] = g.add.sprite(convertCoordinates(x),convertCoordinates(y),'food')
 			.setOrigin(0,0)
 			.setDisplaySize(32,32);
-		console.log(x + ', ' + y);
+		//console.log(x + ', ' + y);
 	});
 
 	socket.on('newPlayer',function(newPlayer){
@@ -110,11 +112,21 @@ function create(){
 		addOtherPlayer(g,newPlayer);
 	});
 
-	socket.on('gain',function(part){
-		g.me.push(g.add.sprite(convertCoordinates(part.x),convertCoordinates(part.y),'part').setOrigin(0,0));
-		score++;
-		console.log(score);
-		scoreText.setText('Score: ' + score);
+	socket.on('gain',function(id,part){
+		if(id == socket.id){
+			let extraP = g.add.sprite(convertCoordinates(part.x),convertCoordinates(part.y),'part').setOrigin(0,0);
+			extraP.depth = 6;
+			g.me.push(extraP);
+			score++;
+			console.log(score);
+			scoreText.setText('Score: ' + score);
+		} else {
+			othergains++;
+			let extraP = g.add.sprite(convertCoordinates(part.x),convertCoordinates(part.y),'part').setOrigin(0,0);
+			extraP.depth = 6;
+			g.otherPlayers[id].push(extraP);
+			console.log(othergains);
+		}
 	});
 
 	socket.on('disconnected',function(id){

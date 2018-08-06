@@ -34,7 +34,7 @@ io.on('connection', function(socket){
 	console.log('A client has connected');
 	console.log("The Client's ID is: " + socket.id);
 	let startParts = 5;
-	socket.on('play',function(){
+	socket.on('play',function(Name){
 		let d = Math.floor(Math.random() * 4);
 		let xi = Math.floor(Math.random() * 137) + 6;
 		let yi = Math.floor(Math.random() * 137) + 6;
@@ -43,11 +43,11 @@ io.on('connection', function(socket){
 		    parts: [{
 		    	x: xi,
 		    	y: yi,
-		    	color: Math.floor(Math.random() * 5),
 		    	dir: d,
 		    	id: socket.id
 		    }],
-		    id:socket.id
+		    id:socket.id,
+		    name:Name
 		}
 
 		for (var ep = 1; ep < startParts; ep++)
@@ -134,7 +134,7 @@ io.on('connection', function(socket){
 	});
 });
 
-const fps = 13;
+const fps = 11;
 let frameCount = 0.0;
 const id = gameloop.setGameLoop(function(delta) {
     // `delta` is the delta time from the last frame
@@ -208,25 +208,11 @@ const id = gameloop.setGameLoop(function(delta) {
 	    		}
     		}
 
-    		while(objSize(foods[i]) < 200){
-    			let xrand = Math.floor(Math.random() * 146) + 2;
-				let yrand = Math.floor(Math.random() * 146) + 2;
-				if(foods[i][xrand]){
-					if(!foods[i][xrand][yrand]){
-						foods[i][xrand][yrand] = 1;
-					}
-				} else {
-					foods[i][xrand] = {};
-					foods[i][xrand][yrand] = 1;
-				}
-				io.in(rm).emit('incFood',xrand,yrand);
-    		}
-
-    		// player loss by other player
-    		if(players[xi][yi] > 1){
+    		// player loss
+    		if(players[xi][yi] > 1 || xi > 147 || xi < 2 || yi > 147 || yi < 2){
     			io.to(id).emit('lost');
     			rooms[i][id].parts.forEach(function(part){
-    				if(Math.random() > (0.5)){
+    				if(Math.random() > (0.5) && !part.id){
 			    		if(foods[i][part.x]){
 							if(!foods[i][part.x][part.y]){
 								foods[i][part.x][part.y] = 1;
@@ -242,6 +228,20 @@ const id = gameloop.setGameLoop(function(delta) {
     		}
 
     	});
+
+    	while(objSize(foods[i]) < 200){
+    		let xrand = Math.floor(Math.random() * 146) + 2;
+			let yrand = Math.floor(Math.random() * 146) + 2;
+			if(foods[i][xrand]){
+				if(!foods[i][xrand][yrand]){
+					foods[i][xrand][yrand] = 1;
+				}
+			} else {
+				foods[i][xrand] = {};
+				foods[i][xrand][yrand] = 1;
+			}
+			io.in(rm).emit('incFood',xrand,yrand);
+    	}
 
     	io.in(rm).emit('update',heads);
     }

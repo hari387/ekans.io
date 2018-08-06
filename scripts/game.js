@@ -1,7 +1,5 @@
 var socket = io.connect();
 
-var othergains = 5;
-
 socket.on('lost',function(){
 	location.reload();
 	console.log('lost');
@@ -11,9 +9,47 @@ function convertCoordinates(a){
 	return (a * 32);
 }
 
+function scoreCompare(a,b){
+	if(a.score > b.score){
+		return -1;
+	} else {
+		return 1;
+	}
+}
+
 function func(){
 
-var elem = document.getElementById("b");
+let name = document.getElementById('name').value;
+if(name == ''){
+	name = 'Player';
+}
+
+console.log("Start");
+console.log(name);
+
+let leaderboard = [];
+
+let numLead = 3;
+
+function drawLead(g){
+	for (var i = 0; i < g.leaders.length; i++) {
+		g.leaders[i].destroy();
+	}
+	g.leaders = [];
+	if(leaderboard.length > numLead){
+		for (var i = 0; i < numLead; i++) {
+			let t = g.add.text(-100,-100,(i+1).toString() + ': ' + leaderboard[i].name + '  ' + leaderboard[i].score, { fontSize: '20px', stroke: '#0000ff', fill: '#0000ff', strokeThickness:3 });
+			g.leaders.push(t);
+		}
+	} else {
+		for (var i = 0; i < leaderboard.length; i++) {
+			let t = g.add.text(-100,-100,(i+1).toString() + ': ' + leaderboard[i].name + '  ' + leaderboard[i].score, { fontSize: '20px', stroke: '#0000ff', fill: '#0000ff', strokeThickness:3 });
+			g.leaders.push(t);
+		}
+	}
+}
+
+let elem = document.getElementById("b");
 elem.parentNode.removeChild(elem);
 
 let config = {
@@ -65,11 +101,12 @@ function create(){
 	let tile1 = this.map.addTilesetImage('bak','tile');
 	this.background = this.map.createStaticLayer('Background',tile1,0,0);
 
-	scoreText = this.add.text(12,12,'Score: '+ score, { fontSize: '26px', stroke: '#ff0000', strokeThickness:3 });
+	scoreText = this.add.text(-100,-100,'Score: '+ score, { fontSize: '26px', stroke: '#0000ff', fill: '#0000ff', strokeThickness:3 });
+	scoreText.depth = 50;
 	console.log('h: '+scoreText.displayHeight);
 	
 
-	socket.emit('play');
+	socket.emit('play',name);
 	
 	socket.on('currentPlayers',function(players){
 		Object.keys(players).forEach(function(id){
@@ -78,7 +115,19 @@ function create(){
 			} else {
 				addOtherPlayer(g,players[id]);
 			}
+			let playerInfo = {};
+			playerInfo.id = id;
+			playerInfo.name = players[id].name;
+			playerInfo.score = players[id].parts.length;
+			leaderboard.push(playerInfo);
 		});
+		leaderboard.sort(scoreCompare);
+		//console.log(leaderboard);
+		g.leaders = [];
+		g.leadText = g.add.text(-1000,-1000,'Leaderboard', { fontSize: '26px', stroke: '#0000ff', fill: '#0000ff', strokeThickness:3 });
+		g.leadText.setPosition(g.me[0].x + window.innerWidth/2 - 240,g.me[0].y - window.innerHeight/2 + 12);
+		scoreText.setPosition(g.me[0].x - window.innerWidth/2 + 12,g.me[0].y - window.innerHeight/2 + 12);
+		drawLead(g);
 	});
 
 	socket.on('foods',function(food){
@@ -110,6 +159,14 @@ function create(){
 	socket.on('newPlayer',function(newPlayer){
 		console.log('A player joined this room');
 		addOtherPlayer(g,newPlayer);
+		let playerInfo = {
+			id:newPlayer.id,
+			name:newPlayer.name,
+			score:newPlayer.parts.length
+		};
+		leaderboard.push(playerInfo);
+		leaderboard.sort(scoreCompare);
+		drawLead(g);
 	});
 
 	socket.on('gain',function(id,part){
@@ -121,12 +178,17 @@ function create(){
 			console.log(score);
 			scoreText.setText('Score: ' + score);
 		} else {
-			othergains++;
 			let extraP = g.add.sprite(convertCoordinates(part.x),convertCoordinates(part.y),'part').setOrigin(0,0);
 			extraP.depth = 6;
 			g.otherPlayers[id].push(extraP);
-			console.log(othergains);
 		}
+		leaderboard.forEach(function(player){
+			if(player.id == id){
+				player.score++;
+			}
+		});
+		leaderboard.sort(scoreCompare);
+		drawLead(g);
 	});
 
 	socket.on('disconnected',function(id){
@@ -135,6 +197,10 @@ function create(){
 			part.destroy();
 		});
 		delete g.otherPlayers[id];
+		for (var i = 0; i < leaderboard.length; i++) {
+			leaderboard.splice(i,1);
+		}
+		drawLead(g);
 	});
 	
 	socket.on('update',function(players){
@@ -164,6 +230,17 @@ function create(){
 			// dir change edge case:
 
 		});
+
+		//ui
+		scoreText.x = g.me[0].x - window.innerWidth/2 + 12;
+		scoreText.y = g.me[0].y - window.innerHeight/2 + 12;
+		g.leadText.x = g.me[0].x + window.innerWidth/2 - 240;
+		g.leadText.y = g.me[0].y - window.innerHeight/2 + 12;
+		for (var i = 0; i < g.leaders.length; i++) {
+			g.leaders[i].x = g.me[0].x + window.innerWidth/2 - 240;
+			g.leaders[i].y = g.me[0].y - window.innerHeight/2 + 12 + (i+1)*25;
+		}
+
 	});
 
 	this.keys = this.input.keyboard.createCursorKeys();
@@ -179,12 +256,6 @@ function create(){
 
 function update(){
 	//console.log('dir'+this.direction);
-
-	// UI:
-	if(this.me[0]){
-		scoreText.setPosition(this.me[0].x - window.innerWidth/2 + 12,this.me[0].y - window.innerHeight/2 + 12);
-		//console.log((this.cam.scrollX - window.innerWidth/2 + 16).toString() + ', ' + (this.cam.scrollY - window.innerHeight/2 + 16).toString())
-	}
 	
 	if(moved){
 		// controls:

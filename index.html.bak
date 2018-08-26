@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>GridSnek.io</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/phaser@3.9.0/dist/phaser.js"></script>
+  <script src="scripts/game.js" type="text/javascript"></script>
+  <style type="text/css">
+  	body{
+  		margin: 0px 0px 0px 0px;
+  	}
+    html{
+      background-color: #BAF876;
+    }
+  </style>
+</head>
+<body>
+  <div id = "b">
+    <button id="start" onclick="func()">Start Game</button>
+    <input type="text" id="name">
+  </div>
+</body>
+</html>

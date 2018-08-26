@@ -51,6 +51,8 @@ function drawLead(g){
 
 let elem = document.getElementById("b");
 elem.parentNode.removeChild(elem);
+elem = document.getElementById("b2");
+elem.parentNode.removeChild(elem);
 
 let config = {
 	type: Phaser.AUTO,
@@ -96,11 +98,13 @@ function create(){
 	this.room = -1;
 	this.direction = -1;
 
+	this.cameras.main.setBackgroundColor('#89fbff');
+
 	
 	this.map = this.add.tilemap('level1');
 	let tile1 = this.map.addTilesetImage('bak','tile');
 	this.background = this.map.createStaticLayer('Background',tile1,0,0);
-
+	
 	scoreText = this.add.text(-100,-100,'Score: '+ score, { fontSize: '26px', stroke: '#0000ff', fill: '#0000ff', strokeThickness:3 });
 	scoreText.depth = 50;
 	console.log('h: '+scoreText.displayHeight);
@@ -232,13 +236,13 @@ function create(){
 		});
 
 		//ui
-		scoreText.x = g.me[0].x - window.innerWidth/2 + 12;
-		scoreText.y = g.me[0].y - window.innerHeight/2 + 12;
+		scoreText.x = g.me[0].x - window.innerWidth/2 + 21;
+		scoreText.y = g.me[0].y - window.innerHeight/2 + 21;
 		g.leadText.x = g.me[0].x + window.innerWidth/2 - 240;
-		g.leadText.y = g.me[0].y - window.innerHeight/2 + 12;
+		g.leadText.y = g.me[0].y - window.innerHeight/2 + 21;
 		for (var i = 0; i < g.leaders.length; i++) {
-			g.leaders[i].x = g.me[0].x + window.innerWidth/2 - 240;
-			g.leaders[i].y = g.me[0].y - window.innerHeight/2 + 12 + (i+1)*25;
+			g.leaders[i].x = g.me[0].x + window.innerWidth/2 - 230;
+			g.leaders[i].y = g.me[0].y - window.innerHeight/2 + 30 + (i+1)*25;
 		}
 
 	});

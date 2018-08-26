@@ -1,21 +1,139 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>GridSnek.io</title>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/phaser@3.9.0/dist/phaser.js"></script>
-  <script src="scripts/game.js" type="text/javascript"></script>
-  <style type="text/css">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>GridSnek.io</title>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.9.0/dist/phaser.js"></script>
+    <script src="scripts/game.js" type="text/javascript"></script>
+    
+    <style type="text/css">
   	body{
   		margin: 0px 0px 0px 0px;
   	}
+    html{
+      background-color: #BAF876;
+    }
+   	#b{
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    #b2{
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .btn {
+      margin: 20px auto;
+      border: none;
+      padding: 10px 44px;
+      font-size: 15px;
+      position: relative;
+    }
+    .btn::before {
+      transition: all 0.85s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      content: '';
+      width: 50%;
+      height: 100%;
+      background: black;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .btn .btn-text {
+      color: white;
+      mix-blend-mode: difference;
+    }
+    .btn:hover::before {
+      background: black;
+      width: 100%;
+    }
+    .btn.rounded {
+      border-radius: 50px;
+    }
+    .btn.rounded .text-green {
+      color: #00F0B5;
+      mix-blend-mode: difference;
+    }
+    .btn.rounded::before {
+      border-radius: 50px;
+      width: 25%;
+      background: #00F0B5;
+    }
+    .btn.rounded:hover::before {
+      background: #00F0B5;
+      width: 100%;
+    }
+    
+
+    @import url('https://fonts.googleapis.com/css?family=Damion|Muli:400,600');
+body{
+  font-family: 'Muli', sans-serif;
+  background: url("https://www.toptal.com/designers/subtlepatterns/patterns/geometry2.png");
+}
+h2 {
+    font-family: 'Damion', cursive;
+    font-weight: 400;
+    color: #4caf50;
+    font-size: 35px;
+    text-align: center;
+    position: relative;
+}
+h2:before {
+    position: absolute;
+    content: '';
+    width: 100%;
+    left: 0;
+    top: 22px;
+    background: #4caf50;
+    height: 1px;
+}
+h2 i {
+    font-style: normal;
+    background: #fff;
+    position: relative;
+    padding: 10px;
+}
+:focus{outline: none;}
+
+/* necessary to give position: relative to parent. */
+input[type="text"]{font: 15px/24px 'Muli', sans-serif; color: #333; width: 100%; box-sizing: border-box; letter-spacing: 1px;}
+
+:focus{outline: none;}
+
+.col-3{float: left; width: 27.33%; margin: 40px 3%; position: relative;} /* necessary to give position: relative to parent. */
+input[type="text"]{font: 15px/24px "Lato", Arial, sans-serif; color: #333; width: 100%; box-sizing: border-box; letter-spacing: 1px;}
+
+.effect-1, 
+.effect-2, 
+.effect-3{border: 0; padding: 7px 0; border-bottom: 1px solid #ccc;}
+
+.effect-1 ~ .focus-border{position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background-color: #4caf50; transition: 0.4s;}
+.effect-1:focus ~ .focus-border{width: 100%; transition: 0.4s;}
+
+.effect-2 ~ .focus-border{position: absolute; bottom: 0; left: 50%; width: 0; height: 2px; background-color: #4caf50; transition: 0.4s;}
+.effect-2:focus ~ .focus-border{width: 100%; transition: 0.4s; left: 0;}
+
+
   </style>
-</head>
-<body>
-  <div id = "b">
-    <button id="start" onclick="func()">Start Game</button>
-    <input type="text" id="name">
-  </div>
-</body>
+  </head>
+  <body>
+    <div id="b"> 
+    <img src="assets/gridsnek.png"><br>
+    </div>
+    <div id = "b2">
+      <span class="col-3">
+        <input id="name" type="text" class="effect-2" placeholder="Name" size = 60>
+        <span class="focus-border"></span>
+      </span>
+      
+      <br>
+      <button id="start" class = "btn rounded" onclick="func()"><span class = "text-green"> Start Game</span>
+      </button>
+    </div>
+  </body>
 </html>

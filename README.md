@@ -1,5 +1,8 @@
 # Gridsnek.io: An online multiplayer version of the Snake Game
 
+Play the game at: ekans-io.herokuapp.com
+The server may take a few seconds to start.
+
 Uses:
 - Node.js
 - Phaser.io (HTML5 Game Engine)
